@@ -15,7 +15,9 @@ namespace webtech_lab3_web_crawler
         static List<Link> visited = new List<Link>(); //the links that have been visited
         static List<String> disallowed = new List<string>(); //items disallowed by robots.txt
         static List<String> robotsDownloaded = new List<string>(); //which robots.txt files have been checked
+
         const string CRAWLERFILE = "crawl.txt";
+        const string RESULTSFILE = "results.txt";
 
         static void Main(string[] args)
         {
@@ -28,6 +30,7 @@ namespace webtech_lab3_web_crawler
             };
 
             WriteCrawlers();
+            WriteResults();
             Console.WriteLine("Finished");
             Console.ReadLine();
         }
@@ -168,7 +171,7 @@ namespace webtech_lab3_web_crawler
 
         static void WriteCrawlers()
         {
-            //writes to the crawlers.txt file. Extracts all the parents and then prints the children as nodes
+            //writes to the crawlers file. Extracts all the parents and then prints the children as nodes
 
             List<String> parents = new List<string>(); //the parent URLs that have been written to the text file
 
@@ -198,5 +201,27 @@ namespace webtech_lab3_web_crawler
             }//write to text file
 
         }//WriteCrawlers
+
+        static void WriteResults()
+        {
+            //writes to the results file. Extracts all the pages then counts the number of visited links it contains
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(RESULTSFILE))
+            {
+                for (int i = 0; i < visited.Count; i++)
+                {
+                    file.WriteLine(visited[i].linkString);
+
+                    var children = (from link in visited
+                                    where link.parent == visited[i].linkString
+                                    select link.linkString).ToList();
+
+                    file.WriteLine("  No of links to Visted pages: " + children.Count);
+
+                }//for each url visited
+
+            }//write to text file
+        }
+
     }
 }
