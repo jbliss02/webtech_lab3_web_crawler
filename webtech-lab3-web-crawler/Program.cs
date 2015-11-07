@@ -11,7 +11,7 @@ namespace webtech_lab3_web_crawler
     public class Program
     {
         static string seed; //the initial url
-        static Stack<Link> stack = new Stack<Link>(); //the links to vist
+        static Stack<Link> toVist = new Stack<Link>(); //the links to vist
         static List<Link> visited = new List<Link>(); //the links that have been visited
         static List<String> disallowed = new List<string>(); //items disallowed by robots.txt
         static List<String> robotsDownloaded = new List<string>(); //which robots.txt files have been checked
@@ -22,9 +22,9 @@ namespace webtech_lab3_web_crawler
         static void Main(string[] args)
         {
             seed = "http://www.dcs.bbk.ac.uk/~martin/sewn/ls3";
-            stack.Push(new Link(seed, seed, seed));
+            toVist.Push(new Link(seed, seed, seed));
 
-            while(stack.Count > 0)
+            while(toVist.Count > 0)
             {
                 CrawlLinks();
             };
@@ -38,7 +38,7 @@ namespace webtech_lab3_web_crawler
         static void CrawlLinks()
         {
             //takes the next page from the stack and extracts all of the links, adds non visted & allowed pages to the stack       
-            Link page = stack.Pop(); //get the next page to view
+            Link page = toVist.Pop(); //get the next page to view
 
             //page may have been viewed already (duplicate links on the same page), if not crawl if allowed
             if(!LinkVisted(page) && CanVisit(page))
@@ -54,12 +54,12 @@ namespace webtech_lab3_web_crawler
                     for(int i = 0; i < regexLinks.Count; i++)
                     {
                         Link link = new Link(ReturnPageLink(regexLinks[i].Value), page.path, page.linkString);
-                        if (link.linkString != null) { stack.Push(link); }
+                        if (link.linkString != null) { toVist.Push(link); }
                     } 
                 }
                 catch(WebException ex)
                 {
-                    //maybe not found or server error
+                    //maybe not found or server error, no need to fail if so
                 }
  
             }//if the link hasn't already been visited
@@ -96,7 +96,6 @@ namespace webtech_lab3_web_crawler
                         if (split[1].Substring(0, 1) == @"/") { split[1] = split[1].Substring(1); } //remove leading dash, these denote a relative url
                         return seed + @"/" + split[1];
                     }
-                    //return split[1].Contains(seed) ? split[1] : seed + @"/" + split[1];
                 }
             }
             else
@@ -144,12 +143,10 @@ namespace webtech_lab3_web_crawler
                               where link.linkString.Contains(lnk)
                               select lnk).Any();
 
-                //Console.WriteLine(!exists + " - " + link.linkString);
                 return !exists; 
             }
             else
             {
-                //Console.WriteLine("false - " + link.linkString);
                 return false; //a different domain or is disallowed
             }
 
@@ -221,7 +218,8 @@ namespace webtech_lab3_web_crawler
                 }//for each url visited
 
             }//write to text file
-        }
+
+        }//WriteResults
 
     }
 }

@@ -25,7 +25,6 @@ namespace webtech_lab3_web_crawler
         {
             get
             {
-
                 List<String> split = linkString.Split('/').ToList();
 
                 if (split[split.Count - 1].Contains("."))
