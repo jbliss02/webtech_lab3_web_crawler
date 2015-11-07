@@ -10,23 +10,24 @@ namespace webtech_lab3_web_crawler
 {
     public class Program
     {
-
         static string seed; //the initial url
         static Stack<Link> stack = new Stack<Link>(); //the links to vist
-        static List<Link> visted = new List<Link>(); //the links that have been visited
+        static List<Link> visited = new List<Link>(); //the links that have been visited
         static List<String> disallowed = new List<string>(); //items disallowed by robots.txt
         static List<String> robotsDownloaded = new List<string>(); //which robots.txt files have been checked
+        const string CRAWLERFILE = "crawl.txt";
 
         static void Main(string[] args)
         {
             seed = "http://www.dcs.bbk.ac.uk/~martin/sewn/ls3";
-            stack.Push(new Link(seed, seed));
+            stack.Push(new Link(seed, seed, seed));
 
             while(stack.Count > 0)
             {
                 CrawlLinks();
             };
 
+            WriteCrawlers();
             Console.WriteLine("Finished");
             Console.ReadLine();
         }
@@ -40,7 +41,7 @@ namespace webtech_lab3_web_crawler
             if(!LinkVisted(page) && CanVisit(page))
             {
                 Console.WriteLine(page.linkString);
-                visted.Add(page);
+                visited.Add(page);
                 try
                 {
                     String html = new WebClient().DownloadString(page.linkString); //download the HTML
@@ -49,7 +50,7 @@ namespace webtech_lab3_web_crawler
                     //put all the unvisited links onto the stack
                     for(int i = 0; i < regexLinks.Count; i++)
                     {
-                        Link link = new Link(ReturnPageLink(regexLinks[i].Value), page.path);
+                        Link link = new Link(ReturnPageLink(regexLinks[i].Value), page.path, page.linkString);
                         if (link.linkString != null) { stack.Push(link); }
                     } 
                 }
@@ -58,7 +59,6 @@ namespace webtech_lab3_web_crawler
                     //maybe not found or server error
                 }
  
-
             }//if the link hasn't already been visited
 
         }//CrawlLinks()
@@ -105,7 +105,7 @@ namespace webtech_lab3_web_crawler
 
         static Boolean LinkVisted(Link link)
         {
-            return (from lnk in visted
+            return (from lnk in visited
                           where link.linkString == lnk.linkString
                           select lnk).Any();
         }
@@ -165,5 +165,38 @@ namespace webtech_lab3_web_crawler
                     where lnk == link.path
                     select lnk).Any();
         }
+
+        static void WriteCrawlers()
+        {
+            //writes to the crawlers.txt file. Extracts all the parents and then prints the children as nodes
+
+            List<String> parents = new List<string>(); //the parent URLs that have been written to the text file
+
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(CRAWLERFILE))
+            {
+                for (int i = 0; i < visited.Count; i++)
+                {
+                    if (!parents.Exists(el => el == visited[i].parent))
+                    {
+                        file.WriteLine(visited[i].parent);
+
+                        var children = (from link in visited
+                                        where link.parent == visited[i].parent
+                                        select link.linkString).ToList();
+
+                        for(int n = 0; n < children.Count; n++)
+                        {
+                            file.WriteLine("--" + children[n]);
+                        }
+
+                        parents.Add(visited[i].parent); //add to the list so we don't print again
+
+                    }//if this parents hasn't been written yet
+
+                }//for each url visited
+
+            }//write to text file
+
+        }//WriteCrawlers
     }
 }

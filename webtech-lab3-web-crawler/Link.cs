@@ -6,16 +6,20 @@ using System.Threading.Tasks;
 
 namespace webtech_lab3_web_crawler
 {
-    public class Links
-    {
-    }
 
     public class Link
     {
-        public Link(string linkString, string startingUrl) { this.linkString = linkString; this.originatingPath = startingUrl; }
+        public Link(string linkString, string startingUrl, string parent) 
+        { 
+            this.linkString = linkString; 
+            this.originatingPath = startingUrl; 
+            this.parent = parent; 
+        }
         public string linkString { get; set; }
 
         public string originatingPath { get; set; }
+
+        public string parent { get; set; }
 
         public string path
         {
